@@ -57,8 +57,6 @@ Although this was not the final answer, it established:
 - Pune as a likely city
 - a strong architectural similarity with the challenge image
 
-This became the first important geographic pivot.
-
 ---
 
 ## Contextual Correlation
