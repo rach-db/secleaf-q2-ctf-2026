@@ -87,16 +87,3 @@ After applying:
 2. Base64 decoding
 
 the original message was recovered successfully.
-
-# Key Takeaway
-
-The challenge was not using real “military grade encryption.”
-
-Instead, it relied on:
-- multiple simple encoding layers
-- psychological intimidation through the challenge name
-- encouraging players to mistake encoding for strong cryptography
-
-The intended lesson was:
-
-> Always identify the transformation type step-by-step before assuming the encryption is complex.
