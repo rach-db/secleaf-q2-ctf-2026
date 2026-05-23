@@ -136,12 +136,3 @@ This challenge focused heavily on:
 - contextual OSINT correlation
 - location narrowing through external references
 
-The important lesson was that no single search directly revealed the answer. The solve required combining:
-
-- visual analysis
-- reverse image searching
-- contextual geographic clues
-- façade comparison
-- social media references
-
-This mirrors real-world OSINT workflows where multiple weak signals combine into a strong identification.
