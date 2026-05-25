@@ -7,15 +7,17 @@
 
 ---
 
-# Initial Analysis
+# First Impressions
 
-The challenge provided a ZIP archive:
+The challenge provided a ZIP archive named:
 
 ```txt
 backup.zip
 ```
 
-The first step was identifying the file type:
+At first glance, it looked like a normal archive, so I started with the usual checks.
+
+I identified the file type using:
 
 ```bash
 file backup.zip
@@ -27,70 +29,79 @@ Output:
 Zip archive data
 ```
 
-So the file was still recognized as a ZIP archive.
+So the file was still being recognized as a ZIP archive.
 
-However, extraction failed:
+That usually means:
+- the structure is partially intact
+- or only a small part of the archive is corrupted.
+
+---
+
+# Trying to Extract the Archive
+
+The obvious next step was attempting extraction:
 
 ```bash
 unzip backup.zip
 ```
 
-Output:
+But extraction failed with:
 
 ```txt
 bad zipfile offset (local header sig): 0
 ```
 
-This indicated that the ZIP structure itself had been corrupted.
+That error strongly suggested the ZIP structure itself had been damaged.
+
+At this point, the challenge clearly became a forensic repair problem rather than a normal extraction task.
 
 ---
 
-# Attempting Recovery
+# Attempting Automatic Recovery
 
-I first attempted automated recovery using common ZIP repair methods.
+Before manually editing anything, I tried standard recovery tools.
 
-Using `7z`:
+First with `7z`:
 
 ```bash
 7z x backup.zip
 ```
 
-Result:
+which failed with:
 
 ```txt
 Cannot open the file as [zip] archive
 ```
 
-Then using ZIP repair:
+Then I tried ZIP repair:
 
 ```bash
 zip -FF backup.zip --out fixed.zip
 ```
 
-Output:
+This produced an interesting message:
 
 ```txt
 no local entry: flag.txt
 ```
 
-This revealed something important:
+That was important because it confirmed:
+- the archive still referenced `flag.txt`
+- but some internal ZIP structures were broken.
 
-- the archive metadata still referenced `flag.txt`
-- but the local ZIP header itself was damaged
-
-This strongly suggested intentional corruption of the ZIP structure.
+So the archive wasn’t completely destroyed — only partially corrupted.
 
 ---
 
-# Inspecting the Archive Header
+# Inspecting the Raw Bytes
 
-I inspected the raw bytes using:
+At this point, I inspected the archive manually using:
 
 ```bash
 xxd backup.zip
 ```
 
-A normal ZIP archive begins with the magic bytes:
+A normal ZIP file starts with the magic bytes:
 
 ```txt
 50 4B 03 04
@@ -102,11 +113,13 @@ which corresponds to:
 PK..
 ```
 
-However, the archive actually began with:
+But this archive instead began with:
 
 ```txt
 00 00 03 04
 ```
+
+That immediately stood out.
 
 The first two bytes:
 
@@ -114,43 +127,51 @@ The first two bytes:
 50 4B
 ```
 
-had been replaced with:
+had simply been replaced with:
 
 ```txt
 00 00
 ```
 
-Everything else in the archive remained intact.
+Everything else in the archive still looked valid.
+
+So the corruption was actually very small.
 
 ---
 
-# Repairing the ZIP Signature
+# Repairing the ZIP Header
 
-The corrupted ZIP signature was repaired manually by restoring:
+The fix was straightforward:
+restore the missing ZIP signature.
+
+Replacing the damaged bytes with:
 
 ```txt
 PK\x03\x04
 ```
 
-Once the header was corrected, the archive structure became valid again.
+repaired the archive structure.
+
+This was a nice reminder that sometimes a file looks “broken” simply because a parser can no longer recognize its header correctly.
 
 ---
 
 # Recovering the Flag
 
-Even before extraction, the flag was visible directly inside the archive data during hex inspection.
-
-The following hexadecimal sequence appeared:
+While inspecting the archive in hex form, I noticed a readable ASCII sequence hidden directly inside the data:
 
 ```txt
 5365 634c 6561 667b 7265 7061 6972 ...
 ```
 
-Converting the hexadecimal ASCII sequence revealed:
+Converting the hexadecimal bytes to ASCII revealed:
 
 ```txt
 SecLeaf{repair_the_archive}
 ```
+
+So the flag was actually recoverable even before fully repairing the archive.
+
 ---
 
 # Tools Used
@@ -158,17 +179,20 @@ SecLeaf{repair_the_archive}
 - `file`
 - `unzip`
 - `7z`
+- `zip`
 - `xxd`
+
 ---
 
-# Key Takeaway
+# What I Learned
 
-This challenge demonstrated an important forensic concept:
+This challenge was a good example of how small structural corruption can completely break file parsing.
 
-> Small structural corruption can prevent normal parsing even when the actual data still exists.
+The archive wasn’t truly destroyed — it only had a damaged signature.
 
-The intended solve path was:
-1. recognize the damaged ZIP signature
-2. inspect the archive at the byte level
-3. manually repair the header
-4. recover the embedded data
+The important part was:
+- recognizing ZIP magic bytes
+- inspecting the file at the byte level
+- and not assuming automated tools will always recover corrupted data.
+
+Sometimes a tiny manual fix is all that’s needed to recover everything.
