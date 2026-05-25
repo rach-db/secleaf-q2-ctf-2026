@@ -1,4 +1,4 @@
-# Forgotten Snapshot - Writeup
+# Forgotten Snapshot – Writeup
 
 ## Challenge Description
 
@@ -7,45 +7,54 @@
 
 ---
 
-## Initial Analysis
+# First Impressions
 
-The challenge provided a disk / filesystem snapshot image.
+The challenge provided a filesystem / snapshot image.
 
-The title **"Forgotten Snapshot"** strongly suggested:
+The title:
 
-- old filesystem state
+```txt
+Forgotten Snapshot
+```
+
+immediately made me think about:
 - deleted files
-- VM/container snapshot
-- hidden historical data
-- recoverable artifacts from previous versions
+- old filesystem states
+- VM or container snapshots
+- recoverable historical data
 
-This immediately pointed toward filesystem forensics and recovery techniques.
+So right from the beginning, this felt more like a forensic recovery challenge than a traditional cracking challenge.
+
+The key idea was probably:
+> something important existed in an older state of the filesystem and was never completely removed.
 
 ---
 
-## Initial Enumeration
+# Initial Enumeration
 
-First, the file type was identified:
+I started with the usual basic checks:
 
 ```bash
 file <challenge_file>
 ```
 
-Then basic string extraction was performed:
+Then extracted readable strings:
 
 ```bash
 strings <challenge_file> | less
 ```
 
-Nothing immediately revealed the flag, so deeper forensic analysis was required.
+Nothing obvious appeared immediately, which suggested that the flag wasn’t simply embedded as plaintext.
+
+At that point, deeper forensic inspection was necessary.
 
 ---
 
-## Filesystem Investigation
+# Investigating the Snapshot
 
-The snapshot was mounted / extracted for inspection.
+Since the challenge involved a snapshot image, the next step was exploring the filesystem contents more carefully.
 
-Common forensic enumeration steps included:
+I used tools like:
 
 ```bash
 binwalk <challenge_file>
@@ -57,42 +66,45 @@ and:
 foremost <challenge_file>
 ```
 
-as well as checking for recoverable deleted data.
+to inspect embedded structures and recover possible deleted artifacts.
 
-The challenge hinted that older data still existed inside the snapshot even though it was no longer visible in the active filesystem.
-
----
-
-## Recovering Historical Data
-
-The important realization was:
-
-> snapshots preserve older filesystem states
-
-Even if a file is deleted later, older snapshots may still contain:
-
-- previous versions
-- deleted content
-- hidden metadata
-- cached artifacts
-
-The filesystem contents were explored carefully until the hidden artifact containing the flag was recovered.
+The challenge description strongly hinted that:
+- old data still existed somewhere inside the snapshot
+- even if it was no longer visible in the “current” filesystem state.
 
 ---
 
-## Key Insight
+# The Important Realization
 
-The challenge was not about cracking encryption or reversing binaries.
+The key realization during the challenge was:
 
-It was about understanding:
-- snapshot behavior
-- forensic recovery
+> snapshots preserve history.
 
-Old snapshots often preserve data that users believe was deleted permanently.
+Even when users delete files later, older snapshots may still contain:
+- previous file versions
+- deleted documents
+- cached content
+- metadata remnants
+- hidden historical artifacts
+
+So instead of treating the image like a normal file, I approached it like a preserved timeline of filesystem states.
 
 ---
 
-## Tools Used
+# Recovering the Hidden Data
+
+By carefully exploring the recovered filesystem data and extracted artifacts, the hidden content containing the flag was eventually recovered.
+
+The challenge wasn’t about:
+- brute force
+- cryptography
+- or reversing binaries
+
+It was about understanding how persistent storage and snapshots work in real forensic situations.
+
+---
+
+# Tools Used
 
 - `file`
 - `strings`
@@ -102,10 +114,12 @@ Old snapshots often preserve data that users believe was deleted permanently.
 
 ---
 
-## Takeaway
+# What I Learned
 
-This challenge demonstrates an important forensic concept:
+This challenge was a really good reminder that:
 
-> Deleted does not always mean gone.
+> deleted does not always mean gone.
 
-Snapshots, backups, and filesystem history can preserve sensitive data long after users think it has been removed.
+Snapshots, backups, and filesystem history can preserve sensitive data long after users believe it has been removed permanently.
+
+From a forensic perspective, historical data can often be more valuable than the active filesystem itself.0
