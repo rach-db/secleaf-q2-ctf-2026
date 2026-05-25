@@ -16,8 +16,6 @@ The title:
 ```txt
 Forgotten Snapshot
 
-<img width="528" height="500" alt="snapshot" src="https://github.com/user-attachments/assets/164134db-6589-44d7-a530-0203c6664f6d" />
-
 ```
 
 immediately made me think about:
