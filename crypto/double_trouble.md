@@ -1,4 +1,3 @@
-
 # Double Trouble – Writeup
 
 ## Challenge Description
@@ -17,7 +16,7 @@ SecLeaf{}
 
 ---
 
-# Initial Analysis
+# First Impressions
 
 The challenge provided a single file:
 
@@ -25,7 +24,7 @@ The challenge provided a single file:
 encrypted.txt
 ```
 
-Viewing the contents:
+I started by checking its contents:
 
 ```bash
 cat encrypted.txt
@@ -38,15 +37,21 @@ Output:
 64664d3245776148523166513d3d0a
 ```
 
-The string contained only hexadecimal characters (`0-9`, `a-f`), which strongly suggested the first encoding layer was hexadecimal.
+The string only contained hexadecimal characters (`0-9`, `a-f`), which immediately suggested that the first layer was probably hex encoding.
 
-The challenge title **Double Trouble** also hinted that multiple decoding steps would be required.
+The challenge title:
+
+```txt
+Double Trouble
+```
+
+also hinted that this wouldn’t be just a single decoding step.
 
 ---
 
-# Step 1 – Decode Hexadecimal
+# Step 1 – Decoding the Hex
 
-I decoded the hex string using `xxd`:
+I decoded the hex string using:
 
 ```bash
 echo 526e4a7757584a756333737759544e66655452734d325666616a526d595764664d3245776148523166513d3d0a | xxd -r -p
@@ -58,17 +63,20 @@ Output:
 RnJwWXJuc3swYTNfeTRsM2VfajRmYWdfM2EwaHR1fQ==
 ```
 
-This output clearly resembled Base64 because:
+This looked very familiar.
 
-- it used valid Base64 characters
-- it ended with `==`
-- the structure matched common Base64 formatting
+A few things immediately stood out:
+- valid Base64 character set
+- trailing `==`
+- overall Base64 formatting pattern
+
+So the next layer was almost certainly Base64.
 
 ---
 
-# Step 2 – Decode Base64
+# Step 2 – Decoding Base64
 
-Next, I decoded the Base64 string:
+I decoded the Base64 string:
 
 ```bash
 echo RnJwWXJuc3swYTNfeTRsM2VfajRmYWdfM2EwaHR1fQ== | base64 -d
@@ -80,27 +88,36 @@ Output:
 FrpYrns{0a3_y4l3e_j4fag_3a0htu}
 ```
 
-At first glance, this still looked incorrect however the challenge title suggested another transformation layer still remained.
+At first glance, this still didn’t look correct.
+
+But it also didn’t look random.
+
+That was the important clue.
+
+The structure still resembled a flag:
+- same braces
+- readable character distribution
+- partially recognizable words
+
+So clearly, another transformation layer still remained.
 
 ---
 
-# Step 3 – Identify ROT13 Encoding
+# Step 3 – Recognizing ROT13
 
-The partially readable output strongly resembled ROT13-obfuscated text.
-
-For example:
+The beginning of the string gave away the trick:
 
 ```txt
 Frp
 ```
 
-decodes to:
+Applying ROT13 to that produces:
 
 ```txt
 Sec
 ```
 
-using ROT13.
+That immediately confirmed the final encoding layer.
 
 I applied ROT13 using:
 
@@ -114,20 +131,20 @@ Output:
 SecLeaf{0n3_l4y3r_w4snt_3n0ugh}
 ```
 
----
-
-# Final Flag
-
-```txt
-SecLeaf{0n3_l4y3r_w4snt_3n0ugh}
-```
+And that turned out to be the correct flag.
 
 ---
 
-# Key Takeaway
+# What I Learned
 
-The challenge relied on recognizing layered encodings:
+This challenge was a really good example of layered encoding.
 
-1. Hexadecimal
-2. Base64
-3. ROT13
+The important part wasn’t using advanced cryptography — it was recognizing patterns step-by-step and not stopping after the first successful decode.
+
+The solve path became:
+
+1. Hex decode
+2. Base64 decode
+3. ROT13 decode
+
+What I liked about this challenge was that each layer naturally hinted toward the next one instead of feeling random or brute-force based.
