@@ -16,9 +16,8 @@ The title:
 ```txt
 Forgotten Snapshot
 
-![Snapshot Analysis](images/snapshot.jpg)
-
 ```
+![Snapshot Analysis](images/snapshot.jpg)
 
 immediately made me think about:
 - deleted files
