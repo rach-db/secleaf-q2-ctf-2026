@@ -19,6 +19,7 @@ The challenge only provided a single image:
 ```txt
 whereami.jpeg
 ```
+![Place analysis](images/whereami.jpg)
 
 At first glance, the image looked like a normal street photograph, but a few details immediately stood out:
 - old heritage-style architecture
