@@ -1,5 +1,4 @@
-
-# military_grade_encryption - Writeup
+# military_grade_encryption – Writeup
 
 ## Challenge Description
 
@@ -9,65 +8,70 @@
 
 ---
 
-# Initial Analysis
+# First Impressions
 
 The challenge provided an encrypted text file.
 
-The wording “military grade encryption” suggested that the challenge was likely trying to intimidate players into overthinking the solution.
+The phrase:
 
-In many beginner-to-intermediate CTF crypto challenges, phrases like:
+```txt
+military grade encryption
+```
+
+immediately felt a little suspicious.
+
+In a lot of beginner and intermediate CTF challenges, dramatic names like:
 - “military grade”
-- “secure encryption”
-- “unbreakable cipher”
+- “unbreakable”
+- “top secret”
 
-usually indicate:
-- layered encodings
-- weak obfuscation
-- or simple transformations hidden behind dramatic wording.
+usually mean the challenge is trying to make the encryption sound more complicated than it actually is.
+
+So instead of assuming real cryptography was involved, I started by checking for common encoding patterns.
 
 ---
 
-# Inspecting the Ciphertext
+# Looking at the Ciphertext
 
-The encrypted file contained a long encoded-looking string.
-
-Example structure:
+The encrypted file contained a long string like:
 
 ```txt
 526e4a7757584a756333737759544e66655452734d325666616a526d5957...
 ```
 
-At first glance, the data looked hexadecimal.
+At first glance, it looked like hexadecimal because:
+- it only contained characters from `0-9` and `a-f`
+- the structure matched common hex-encoded data.
+
+That became the first decoding attempt.
 
 ---
 
-# First Decoding Layer — Hex
+# Step 1 – Decoding Hex
 
-The first step was converting the hexadecimal string back into readable bytes.
-
-Using Python:
+I decoded the hex string back into raw bytes using Python:
 
 ```python
 bytes.fromhex(ciphertext)
 ```
 
-After decoding from hex, the output became another encoded string rather than plaintext.
+The result wasn’t plaintext yet, but it clearly looked structured instead of random.
 
-This immediately suggested:
-- the encryption was layered
-- multiple transformations had been applied sequentially
+That was an important clue.
+
+If decoding produces another readable-looking string instead of garbage, it usually means:
+> there’s another layer underneath.
 
 ---
 
-# Second Decoding Layer — Base64
+# Step 2 – Recognizing Base64
 
-The resulting decoded text strongly resembled Base64 because:
-- it used only valid Base64 characters
-- it ended with padding characters like `=`
+The decoded output strongly resembled Base64 because:
+- it used valid Base64 characters
+- it ended with padding like `=`
+- and the formatting looked familiar.
 
-Decoding the Base64 layer revealed the hidden message.
-
-Using Python:
+So I decoded the second layer using Python:
 
 ```python
 import base64
@@ -78,6 +82,8 @@ flag = base64.b64decode(decoded)
 print(flag.decode())
 ```
 
+This successfully revealed the hidden message.
+
 ---
 
 # Recovering the Flag
@@ -86,4 +92,16 @@ After applying:
 1. Hex decoding
 2. Base64 decoding
 
-the original message was recovered successfully.
+the original flag was recovered successfully.
+
+# What I Learned
+
+This challenge was a good reminder that:
+> encoding is not encryption.
+
+The challenge tried to make the data look intimidating, but the actual solution relied on recognizing common encoding formats step-by-step.
+
+Instead of jumping into complicated cryptography, the important approach was:
+- identify recognizable patterns
+- decode layer-by-layer
+- and avoid overthinking the challenge name.
