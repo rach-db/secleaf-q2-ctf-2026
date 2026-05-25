@@ -22,6 +22,7 @@ and:
 ```bash
 strings <challenge_file> | less
 ```
+![Important Challenge](images/Important.jpg)
 
 Nothing obvious appeared immediately.
 There was no visible flag and no suspicious plaintext data.
