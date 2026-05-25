@@ -8,7 +8,7 @@
 
 ---
 
-# Initial Analysis
+# First Impressions
 
 The challenge provided a Git repository.
 
@@ -18,28 +18,29 @@ The title:
 force-push-wont-save-you
 ```
 
-immediately suggested:
+immediately suggested a challenge involving:
 - deleted Git history
 - hidden commits
 - dangling objects
 - stash recovery
-- or leftover repository metadata
+- or leftover Git metadata.
 
-The phrase “force push” strongly implied that important data may still exist somewhere inside `.git`.
+The phrase “force push” was the biggest clue.
+
+Normally, when developers try to remove sensitive information from a repository, they rewrite history and force push the cleaned version. But in CTFs, that usually means:
+> something still survived somewhere inside `.git`.
 
 ---
 
-# Enumerating the Repository
+# Exploring the Repository
 
-I began by inspecting the commit history:
+I started with the obvious Git investigation commands:
 
 ```bash
 git log --all
 ```
 
-Several suspicious commits and fake-looking flags appeared.
-
-Additional investigation included:
+Then:
 
 ```bash
 git reflog
@@ -47,7 +48,7 @@ git stash list
 git fsck --lost-found
 ```
 
-This revealed multiple misleading artifacts such as:
+Very quickly, I started finding suspicious-looking flags like:
 
 ```txt
 SecLeaf{still_fake}
@@ -55,39 +56,41 @@ SecLeaf{not_the_real_flag}
 SecLeaf{fake_dangling_flag}
 ```
 
+At first this looked promising, but after seeing multiple fake flags, it became obvious that the challenge was intentionally trying to mislead players.
+
 ---
 
-# Recognizing the Misdirection
+# Recognizing the Trap
 
-At this point, it became clear that the challenge intentionally contained multiple fake flags.
+This was the most important realization in the challenge.
 
-This was an important clue.
+One fake flag is normal in CTFs.
 
-Instead of trusting:
-- commit history
-- dangling blobs
+But once there are several fake flags spread across:
+- commits
 - stash entries
+- dangling blobs
+- recovered objects
 
-I shifted focus toward:
-- Git internals
-- hidden metadata
-- less commonly inspected files
+…it usually means the challenge author wants you to focus too much on Git history itself.
 
-The challenge title hinted that:
+That’s when I stopped trusting the obvious artifacts and started thinking:
 
-> history itself might be the trap.
+> what if the history itself is the distraction?
+
+The challenge title suddenly made much more sense.
 
 ---
 
-# Inspecting the `.git` Directory Directly
+# Searching Git Internals Directly
 
-Rather than relying only on Git commands, I searched the raw `.git` directory directly:
+Instead of only using Git commands, I searched the raw `.git` directory directly:
 
 ```bash
 grep -R "SecLeaf" .git/
 ```
 
-This revealed the real flag hidden inside:
+This immediately revealed something interesting inside:
 
 ```txt
 .git/info/exclude
@@ -99,9 +102,11 @@ The output contained:
 SecLeaf{history_was_the_trap}
 ```
 
+And that turned out to be the real flag.
+
 ---
 
-# Why This Worked
+# Why This Was Clever
 
 The file:
 
@@ -110,17 +115,22 @@ The file:
 ```
 
 is:
-- local-only Git metadata
-- not committed into repository history
-- rarely inspected during normal Git analysis
+- local Git metadata
+- not part of commit history
+- not pushed normally
+- and rarely inspected during standard Git analysis.
 
-Most players focus only on:
+Most people naturally focus on:
 - commits
-- reflog
-- stash
-- dangling blobs
+- reflogs
+- stashes
+- dangling objects
 
 The challenge exploited that tunnel vision perfectly.
+
+The real trick was realizing that:
+> Git contains more than just commit history.
+
 ---
 
 # Tools Used
@@ -132,12 +142,15 @@ The challenge exploited that tunnel vision perfectly.
 
 ---
 
-# Key Takeaway
+# What I Learned
 
-This challenge demonstrated an important forensic principle:
+This challenge was less about advanced Git recovery and more about mindset.
 
-> Sometimes the metadata surrounding the history is more important than the history itself.
+The biggest lesson was:
+- don’t blindly trust the obvious path
+- recognize intentional misdirection
+- and inspect the surrounding metadata, not just history itself.
 
-The intended lesson was:
-- inspect Git internals directly
-- recognize deliberate CTF misdirection
+Ironically, the challenge title was telling the truth the entire time:
+
+> the history really was the trap.
