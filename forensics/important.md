@@ -76,6 +76,9 @@ One of the recovered files finally revealed the hidden flag.
 
 ---
 
+## Flag Captured
+![Flag](images/important_flag.png)
+
 # The Main Idea Behind the Challenge
 
 The challenge itself was fairly straightforward technically, but it was a good reminder of an important forensic concept:
