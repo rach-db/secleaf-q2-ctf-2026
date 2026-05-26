@@ -27,6 +27,9 @@ immediately made me think about:
 
 So right from the beginning, this felt more like a forensic recovery challenge than a traditional cracking challenge.
 
+# Flag captured
+![Flag](forgotten_snapshot_flag.png)
+
 The key idea was probably:
 > something important existed in an older state of the filesystem and was never completely removed.
 
